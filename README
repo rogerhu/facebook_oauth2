@@ -1,0 +1,47 @@
+Facebook OAuth2 code
+=====================
+
+This code is intended to be used with the Facebook JavaScript SDK (http://github.com/facebook/connect-js)
+to show how to transition to the new OAuth2 implementation.
+
+1. On the JavaScript side, the oauth: true options. must be set in the FB.init()
+calls.  The facebook api_id needs to be used instead of facebook_app_id:
+
+<script type="text/javascript">
+FB.init({apiKey: facebook_app_id,
+                 oauth: true,
+                 cookie: true});
+</script>
+
+2. Instead of response.session, the response should now be response.authResponse.  Also,
+make note that scope: should be used instead of perms:
+
+  FB.login(function(response) {
+    if (response.authResponse) {
+    },
+    {scope: 'email,publish_stream,manage_pages'}
+    });
+
+Also, if you need to retrieve the user id on the JavaScript, the value is stored
+as response.authResponse.userID instead of response.session.uid:
+
+  FB.api(
+       { method: 'fql.query',
+        query: 'SELECT ' + permissions.join() + ' FROM permissions WHERE uid=' + response.authResponse.userID},
+        function (response) { });
+
+3. If the OAuth2 login was successful, an fbsr_ cookie is set instead of fbs_ cookie.
+
+Included are also Django views to show how to force expiration of fbs_ cookie,
+so that you can require all logins to rely on the fbsr_ cookie.  The current
+Facebook Connect Library does not have the ability to force expiration of these
+old cookies since the apiKey parameter has to be changed for OAuth2.  In order
+to clear the cookie, the correct domain= parameter must be provided.
+
+4. Note that this code assumes that you have FACEBOOK_APP_SECRET,
+FACEBOOK_APP_ID, and FACEBOOK_API_KEY set inside your settings.py file.
+
+Reporting Issues
+--------
+
+If you have bugs or other issues, send them to roger.hu [at] gmail.com.
