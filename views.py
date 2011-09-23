@@ -12,7 +12,7 @@ def fb_login(request):
     return HttpResponse("user returned: %s" % data['user_id'])
 
 
-def logout(request):
+def fb_logout(request):
 
     response = HttpResponseRedirect("/")
 
