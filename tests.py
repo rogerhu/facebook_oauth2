@@ -1,8 +1,7 @@
 import mock
 import unittest
 
-from utils import get_signed_fb_request, get_access_tokens_from_signed_fb_request
-from utils import fb_mock_cookie
+from utils import get_signed_fb_request, get_access_tokens_from_signed_fb_request, fb_mock_cookie
 
 
 class FBTestSuite(unittest.TestCase):
