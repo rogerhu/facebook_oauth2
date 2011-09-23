@@ -1,7 +1,8 @@
 import mock
-
 import unittest
-from oauth2_facebook import get_access_tokens_from_signed_fb_request
+
+from oauth2_facebook import get_signed_fb_request, get_access_tokens_from_signed_fb_request
+from utils import fb_mock_cookie, fb_sign_payload
 
 
 class FBTestSuite(unittest.TestCase):
@@ -25,6 +26,19 @@ class FBTestSuite(unittest.TestCase):
         self.assertTrue(data.get('access_token'), 'Should have an access token')
         self.assertTrue(data.get('session_key'), 'Should have a session key')
         self.assertNotEqual(data['expires'], "0", "Should be expiring")
+
+    def test_create_mock_cookie(self):
+        from django.conf import settings
+        settings.FACEBOOK_API_KEY = "1234"
+        settings.FACEBOOK_APP_ID = "5678"
+        settings.FACEBOOK_SECRET_KEY = "mysecret"
+
+        (cookie_name, cookie_secret) = fb_mock_cookie('123')
+        response = get_signed_fb_request({cookie_name: cookie_secret},
+                                         settings.FACEBOOK_APP_ID,
+                                         settings.FACEBOOK_SECRET_KEY)
+        self.assertTrue(response.get('issued_at'), 'Should have seen an issued_at')
+        self.assertEqual(response.get('user_id'), '123', 'User ID does not match')
 
 if __name__ == "__main__":
     unittest.main()

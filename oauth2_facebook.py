@@ -39,6 +39,7 @@ def parse_signed_request(signed_request, secret):
     if sig != expected_sig:
         return None
 
+    return data
 
 def get_app_token_helper(data=None):
     if not data:
@@ -91,6 +92,8 @@ def get_signed_fb_request(cookies, app_id, app_secret, fetch_tokens=False):
         logging.debug("fetching tokens in get_signed_fb_request")
         data = get_access_tokens_from_signed_fb_request(data)
     else:
+        # Use so that backwards compatible Python OAuth v1.0 that used get_user_from_cookie()
+        # to still use user_id.
         if data and data.get('user_id'):
             data['uid'] = data['user_id']
         else:
