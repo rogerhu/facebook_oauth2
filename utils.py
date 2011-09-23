@@ -6,6 +6,7 @@ import hmac
 import json
 import logging
 import re
+import time
 import urllib
 import urllib2
 
@@ -40,6 +41,7 @@ def parse_signed_request(signed_request, secret):
         return None
 
     return data
+
 
 def get_app_token_helper(data=None):
     if not data:
@@ -152,4 +154,38 @@ def decode_cookie_string(cookie_string):
 
     return cookie_dict
 
+##########################################################
+# Test routines to create a cookie and sign the payload.
+##########################################################
 
+
+def fb_mock_cookie(user_id):
+
+    payload_dict = {
+        u'issued_at': time.time(),
+        # One drawback of OAuth2 is that it's hard to mock a Facebook
+        # authorization code that is used to retrieve a token.
+        u'code': 'AUTH_CODE_FB_USUALLY_GIVES_US',
+        u'user_id': user_id,
+    }
+
+    # Sign the payload before appending the signature with our secret key
+    signed_request = fb_sign_payload(payload_dict, settings.FACEBOOK_SECRET_KEY)
+    return ('fbsr_%s' % settings.FACEBOOK_APP_ID, signed_request)
+
+
+def fb_sign_payload(payload, app_secret):
+    """
+    Taken from external/facebook.py to match the signature with our payload
+    (the data passed into request.COOKIES
+    """
+    payload['algorithm'] = 'HMAC-SHA256'
+
+    json_encoded_payload = json.dumps(payload)
+    b64_payload = base64.urlsafe_b64encode(json_encoded_payload)
+
+    signature = hmac.new(key=settings.FACEBOOK_SECRET_KEY,
+                         msg=b64_payload, digestmod=hashlib.sha256).digest()
+
+    b64_signature = base64.urlsafe_b64encode(signature)
+    return "%s.%s" % (b64_signature, b64_payload)
