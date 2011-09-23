@@ -38,7 +38,7 @@ def parse_signed_request(signed_request, secret):
         expected_sig = hmac.new(secret, msg=payload, digestmod=hashlib.sha256).digest()
 
     if sig != expected_sig:
-        return None
+        raise Exception('signature did not mismatch...possible forgery?')
 
     return data
 
