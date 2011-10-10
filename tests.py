@@ -13,8 +13,6 @@ class FBTestSuite(unittest.TestCase):
 
         data = get_access_tokens_from_signed_fb_request({'code': 'BLA', 'user_id': '1474622354'})
         self.assertTrue(data.get('access_token'), 'Should have an access token')
-        self.assertTrue(data.get('session_key'), 'Should have a session key')
-        self.assertEqual(data['expires'], "0", "Should not be expirig")
 
     @mock.patch("utils.get_access_token_from_code")
     def test_get_signed_fb_request_expired_key(self, mock):
@@ -23,8 +21,6 @@ class FBTestSuite(unittest.TestCase):
 
         data = get_access_tokens_from_signed_fb_request({'code': 'BLA', 'user_id': '1474622354'})
         self.assertTrue(data.get('access_token'), 'Should have an access token')
-        self.assertTrue(data.get('session_key'), 'Should have a session key')
-        self.assertNotEqual(data['expires'], "0", "Should be expiring")
 
     def test_create_mock_cookie(self):
         from django.conf import settings

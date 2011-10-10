@@ -110,27 +110,9 @@ def get_access_tokens_from_signed_fb_request(data):
 
         if response:
             token_response = {}
-            (app_id, session_key, digest) = response.split('|')
-
-            # http://www.quora.com/Do-the-OAuth2-access-tokens-in-the-new-Facebook-Graph-API-expire
-            # expiring_session_key = "2." session_secret ".3600." expire_at "-" user_id
-            # nonexpiring_session_key = session_secret "-" user_id
-
-            non_expiring_session = re.match(r"^(?P<session_secret>.*?)\-(?P<user_id>.*?)$", session_key)
-            expiring_session = re.match(r"^2\.(?P<session_secret>.*?)\.3600\.(?P<expire_time>.*?)-(?P<user_id>.*?)$", session_key)
-
-            if expiring_session:
-                token_response["expires"] = expiring_session.groupdict().get('expire_time')
-                token_response["uid"] = expiring_session.groupdict().get('user_id')
-            elif non_expiring_session:
-                token_response["expires"] = "0"
-                token_response["uid"] = non_expiring_session.groupdict().get('user_id')
-
-            assert token_response['uid'] == data['user_id']  # sanity check that the cookie matches
-
             token_response['fbsr_signed'] = True   # for debugging purposes
             token_response['access_token'] = response
-            token_response['session_key'] = session_key
+            token_response['session_key'] = '' # FB has changed their token format; no longer can get back session_key
 
             return token_response
 
