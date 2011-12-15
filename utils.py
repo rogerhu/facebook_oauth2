@@ -5,10 +5,10 @@ import hashlib
 import hmac
 import json
 import logging
-import re
 import time
 import urllib
 import urllib2
+import urlparse
 
 BASE_LINK = "https://graph.facebook.com"
 
@@ -53,11 +53,13 @@ def get_app_token_helper(data=None):
         app_token = urllib2.urlopen(BASE_LINK + "/oauth/access_token?%s" % token_request).read()
     except urllib2.HTTPError, e:
         logging.debug("Exception trying to grab Facebook App token (%s)" % e)
-        return None
+        return {}
 
-    matches = re.match(r"access_token=(?P.*)", app_token).groupdict()
-
-    return matches.get('token')
+    # Returned dictionary should contain "access_token" and possibly "expires"
+    ret = urlparse.parse_qs(app_token)
+    for key in ret:
+        ret[key] = ret[key][0]  # shouldn't be multiple values for a key
+    return ret
 
 
 def get_access_token_from_code(code, redirect_url=None):
@@ -108,11 +110,13 @@ def get_access_tokens_from_signed_fb_request(data):
     if data:
         response = get_access_token_from_code(data.get('code', ''))
 
-        if response:
+        if len(response) > 0:
             token_response = {}
+            if "expires" in response:
+                token_response['expires'] = response.get("expires")
             token_response['fbsr_signed'] = True   # for debugging purposes
-            token_response['access_token'] = response
-            token_response['session_key'] = '' # FB has changed their token format; no longer can get back session_key
+            token_response['access_token'] = response.get("access_token", "")
+            token_response['session_key'] = ''  # FB has changed their token format; no longer can get back session_key
 
             return token_response
 
