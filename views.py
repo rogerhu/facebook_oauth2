@@ -18,8 +18,12 @@ def fb_logout(request):
 
     # Force expiration of fbs_ cookies so that they are not being used.
     fbs_cookie_name = 'fbs_' + settings.FACEBOOK_API_KEY
+    fbsr_cookie_name = 'fbsr_' + settings.FACEBOOK_APP_ID
+    fbm_cookie_name = 'fbm_' + settings.FACEBOOK_APP_ID
 
     fbs_cookie = request.COOKIES.get(fbs_cookie_name)
+    fbsr_cookie = request.COOKIES.get(fbsr_cookie_name)
+    fbm_cookie = request.COOKIES.get(fbm_cookie_name)
 
     # If we are using the JavaScript OAuth library cookie, then we'll be unable to
     # logout because Facebook's Connect library is keyed to using the apiKey set
@@ -43,5 +47,17 @@ def fb_logout(request):
         # You can't delete cookies properly without the base_domain set.
         if base_domain:
             response.delete_cookie(fbs_cookie_name, domain="." + base_domain)
+
+    elif fbsr_cookie:
+        logging.debug("User was using fbsr_ cookie %s...forcing to delete." % fbsr_cookie)
+
+        # Facebook recently introduced fbm_ cookies.  In order to delete the cookie,
+        # the base_domain parameter must be set.  Note that no "." needs to be used.
+        if fbm_cookie:
+            cookie_dict = decode_cookie_string(fbm_cookie)
+            base_domain = cookie_dict.get('base_domain')
+            response.delete_cookie(fbsr_cookie_name, domain=base_domain)
+        else:
+            response.delete_cookie(fbsr_cookie_name)
 
     return response
